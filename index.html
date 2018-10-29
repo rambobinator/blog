@@ -1,0 +1,105 @@
+<html>
+    <head>
+      <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+      <script src="https://unpkg.com/marked@0.3.6"></script>
+      <script src="https://unpkg.com/vue-timeago@5.0.0/dist/vue-timeago.min.js"></script>
+      <link href="https://fonts.googleapis.com/css?family=Jura" rel="stylesheet">
+    <style>
+        * {
+        font-family: "Jura", sans-serif;
+        }
+        code {
+        font-family: "Verdana", serif;
+        }
+        blockquote {
+        font-style: italic;
+        }
+        #post_list {
+        width: 66%;
+        height: 100%;
+        margin: 0 auto;
+        padding: 10px;
+        }
+        .post {
+        background-color: #F8F9F9;
+        margin: 20px;
+        padding: 10px;
+        position: relative;
+        }
+        .title {
+        text-transform: capitalize;
+        }
+        .date {
+        font-size: 12px;
+        }
+        .author {         
+        }
+        .labels {
+        position: absolute;
+        top: 0px;
+        right: 0px;
+        }
+        .label {
+        margin: 5px;
+        font-size: 14px;
+        letter-spacing: -1px;
+        }
+      </style>
+    </head>
+    <body>
+      <div id="app">
+        <div id="post_list">
+          <div class="post" v-for="post in posts">
+            <timeago class="date" :datetime="post.created_at"></timeago>
+            <h1 class="title">{{ post.title }}</h1>
+            <div class="labels"><span class="label" v-for="label in post.labels">{{ label.name }}</span></div>
+            <p class="post_body" v-html="compiledMarkdown(post.body)"></p>
+          </div>
+        </div>
+    </div>
+    </body>
+    <script>
+    var github_api = "https://api.github.com/";
+
+    Vue.use(VueTimeago, {
+        name: 'Timeago',
+        locale: 'en',
+    });
+
+    var app = new Vue({
+        el: '#app',
+        data: {
+            username: 'rambobinator',
+            categories: [],
+            posts: [],
+        },
+        mounted(){
+            this.getCategories();
+            this.getPosts();
+        },
+        methods: {
+            compiledMarkdown: function(md){
+                return marked(md, {sanitize: true})
+            },
+            getCategories: function(){
+                var _ = this;
+                var labels_endpoint = github_api + `repos/${this.username}/blog/labels`;
+                fetch(labels_endpoint).then(function(response){
+                    return response.json();
+                }).then(function(data){
+                    _.categories = data.filter(label => !label.default).map(label => label.name)
+                })
+            },
+            getPosts: function(){
+                var _ = this;
+                var issues_endpoint = github_api + `repos/${this.username}/blog/issues`;
+                fetch(issues_endpoint).then(function(response){
+                    return response.json();
+                }).then(function(data){
+                    _.posts = data
+                })
+            },
+        },
+    })
+</script>
+</html>
