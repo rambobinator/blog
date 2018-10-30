@@ -62,22 +62,33 @@
     var github_api = "https://api.github.com/";
 
     Vue.use(VueTimeago, {
-        name: 'Timeago',
-        locale: 'en',
+        name: "Timeago",
+        locale: "en",
     });
 
     var app = new Vue({
-        el: '#app',
+        el: "#app",
         data: {
-            username: 'rambobinator',
+            username: '',
             categories: [],
             posts: [],
         },
         mounted(){
+            this.getRepo();
             this.getCategories();
             this.getPosts();
         },
         methods: {
+            getRepo: function(){
+                var hostname = document.location.hostname;
+                var splitted_hostname = hostname.split('.');
+                if (hostname.includes(".github.io") && (splitted_hostname.length == 3)){
+                    this.username = splitted_hostname[0];
+                }
+                else {
+                    this.username = "rambobinator";
+                }
+            },
             compiledMarkdown: function(md){
                 return marked(md, {sanitize: true})
             },
